@@ -36,7 +36,7 @@ class TestAPIAuth(unittest.TestCase):
         response = self.client.post("/auth/register",
                                  data=json.dumps(dict(username="",
                                     password="")), content_type="application/json")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
     def test_user_login_generates_token(self):
         '''
@@ -76,3 +76,5 @@ class TestAPIAuth(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
