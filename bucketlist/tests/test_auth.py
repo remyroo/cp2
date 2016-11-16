@@ -55,7 +55,7 @@ class TestAPIAuth(unittest.TestCase):
                                         password="testpass")), content_type="application/json")
         self.assertEqual(response.status_code, 200)
         response_msg = json.loads(response.data)
-        self.assertIn("token", response_msg["Token"])
+        self.assertIn("Token", response_msg)
 
     def test_invalid_login(self):
         '''
