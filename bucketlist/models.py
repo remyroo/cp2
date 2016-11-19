@@ -10,7 +10,7 @@ class ValidationError(ValueError):
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), index=True)
+    username = db.Column(db.String(80), unique=True, index=True)
     password_hash = db.Column(db.String(128))
     bucketlists = db.relationship("Bucketlist", backref="user", lazy="dynamic",
                                   cascade="all, delete-orphan")
@@ -29,10 +29,13 @@ class User(db.Model):
 
     def import_data(self, data):
         try:
-            self.username = data["username"]
-            self.password_hash = data["password"]
+            if not data["username"] or not data["password"]:
+                return "Missing"
+            else:
+                self.username = data["username"]
+                self.password_hash = data["password"]
         except KeyError as e:
-            raise ValidationError("Invalid, missing: " + e.args[0])
+            raise ValidationError("Missing field: " + e.args[0])
         return self
 
 
@@ -40,7 +43,8 @@ class Bucketlist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     list_name = db.Column(db.String(100), index=True)
     date_created = db.Column(db.DateTime, default=datetime.now)
-    date_modified = db.Column(db.DateTime, onupdate=datetime.now)
+    date_modified = db.Column(db.DateTime, default=datetime.now,
+                              onupdate=datetime.now)
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"))
     items = db.relationship("BucketlistItem", backref="bucketlist",
                             lazy="dynamic", cascade="all, delete-orphan")
@@ -71,7 +75,8 @@ class BucketlistItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, index=True)
     date_created = db.Column(db.DateTime, default=datetime.now)
-    date_modified = db.Column(db.DateTime, onupdate=datetime.now)
+    date_modified = db.Column(db.DateTime, default=datetime.now,
+                              onupdate=datetime.now)
     done = db.Column(db.Boolean, default=False)
     bucket = db.Column(db.Integer, db.ForeignKey("bucketlist.id"))
 

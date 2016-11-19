@@ -1,13 +1,18 @@
 from flask import url_for, jsonify, request, g
 from bucketlist import app, db
-from bucketlist.models import User, Bucketlist, BucketlistItem
+from bucketlist.models import User, Bucketlist, BucketlistItem, ValidationError
 from bucketlist.auth import auth_token, verify_password, generate_auth_token
 
 
 @app.route("/auth/register", methods=["POST"])
 def new_user():
     user = User()
-    user.import_data(request.json)
+    try:
+        sanitized = user.import_data(request.json)
+        if sanitized == "Missing":
+            return jsonify({"Message": "Username and Password are required"}), 400
+    except ValidationError as e:
+        return jsonify({"Message": str(e)}), 400
     user.set_password(user.password_hash)
     db.session.add(user)
     db.session.commit()
@@ -57,7 +62,6 @@ def all_bucketlists():
                         for bucketlist in Bucketlist.query.all()]}), 200
     except:
         return jsonify({"Message": "There are no bucketlists"}), 404
-
 
 @app.route("/bucketlists/<int:bucket_id>", methods=["GET"])
 @auth_token.login_required
@@ -122,7 +126,6 @@ def delete_item(bucket_id, item_id):
     itemlist = BucketlistItem.query.filter_by(bucket=bucket_id)
     for item in itemlist:
         if item.id == item_id:
-            item.import_data(request.json)
             db.session.delete(item)
             db.session.commit()
             return jsonify({"Message": item.name.title() + "has been deleted"}), 200
