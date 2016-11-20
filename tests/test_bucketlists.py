@@ -67,7 +67,7 @@ class TestBucketlistViews(BaseTestCase):
         token = response_msg["Token"]
 
         response = self.client.put("/bucketlists/2",
-                                data=json.dumps(dict(list_name="updated_name")),
+                                   data=json.dumps(dict(list_name="updated_name")),
                                    content_type="application/json",
                                    headers={'Authorization': 'Token ' + token})
         self.assertEqual(response.status_code, 200)
@@ -91,10 +91,30 @@ class TestBucketlistViews(BaseTestCase):
         self.assertEqual(Bucketlist.query.get(1), None)
 
     def test_pagination(self):
-        pass
+        response = self.client.post("/auth/login",
+                                    data=json.dumps(dict(username="testuser",
+                                                    password="testpass")),
+                                    content_type="application/json")
+        response_msg = json.loads(response.data)
+        token = response_msg["Token"]
+
+        response = self.client.get("/bucketlists?limit=20",
+                                   content_type="application/json",
+                                   headers={'Authorization': 'Token ' + token})
+        self.assertEqual(response.status_code, 200)
 
     def test_search_by_name(self):
-        pass
+        response = self.client.post("/auth/login",
+                                    data=json.dumps(dict(username="testuser",
+                                                    password="testpass")),
+                                    content_type="application/json")
+        response_msg = json.loads(response.data)
+        token = response_msg["Token"]
+
+        response = self.client.get("/bucketlists?q=testbucketlist",
+                                   content_type="application/json",
+                                   headers={'Authorization': 'Token ' + token})
+        self.assertEqual(response.status_code, 200)
 
 
 if __name__ == '__main__':
