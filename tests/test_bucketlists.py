@@ -6,7 +6,8 @@ from bucketlist.models import Bucketlist
 
 class TestBucketlistViews(BaseTestCase):
     '''
-    Test bucketlist interactions
+    Test bucketlist interactions. These views
+    require a token to access them 
     '''
     def test_add_new_bucketlist(self):
         response = self.client.post("/auth/login",
@@ -37,12 +38,12 @@ class TestBucketlistViews(BaseTestCase):
                                    headers={'Authorization': 'Token ' + token})
         response_msg = json.loads(response.data)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response_msg["All bucketlists"]), 2)
+        self.assertEqual(len(response_msg["Bucketlists"]), 2)
 
     def test_get_bucketlist(self):
         '''
-        Two test bucketlist items are added in setUp to test
-        the GET(bucketlist id) request
+        Two test bucketlist items were added in the setUp to test
+        the GET bucketlist id request works correctly
         '''
         response = self.client.post("/auth/login",
                                     data=json.dumps(dict(username="testuser",
@@ -98,12 +99,14 @@ class TestBucketlistViews(BaseTestCase):
         response_msg = json.loads(response.data)
         token = response_msg["Token"]
 
-        response = self.client.get("/bucketlists?limit=20",
+        response = self.client.get("/bucketlists/?limit=2",
                                    content_type="application/json",
                                    headers={'Authorization': 'Token ' + token})
         self.assertEqual(response.status_code, 200)
+        response_msg = json.loads(response.data)
+        self.assertEqual(2, response_msg["count"])
 
-    def test_search_by_name(self):
+    def test_search_by_bucketlist_name(self):
         response = self.client.post("/auth/login",
                                     data=json.dumps(dict(username="testuser",
                                                     password="testpass")),
@@ -111,10 +114,12 @@ class TestBucketlistViews(BaseTestCase):
         response_msg = json.loads(response.data)
         token = response_msg["Token"]
 
-        response = self.client.get("/bucketlists?q=testbucketlist",
+        response = self.client.get("/bucketlists/?q=testbucketlist",
                                    content_type="application/json",
                                    headers={'Authorization': 'Token ' + token})
         self.assertEqual(response.status_code, 200)
+        response_msg = json.loads(response.data)
+        self.assertEqual("testbucketlist", response_msg["Bucketlists"][0]["list_name"])
 
 
 if __name__ == '__main__':

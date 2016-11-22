@@ -3,7 +3,7 @@ from flask_script import Manager
 from bucketlist import app, db, views
 
 '''
-Create scripts that allow
+Creates scripts that allow
 db creation and migrations to run
 from the shell using manage.py commands.
 '''

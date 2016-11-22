@@ -53,14 +53,15 @@ class Bucketlist(db.Model):
         return {
             "id": self.id,
             "list_name": self.list_name,
-            "date_created": self.date_created.isoformat() + "Z",
-            "date_modified": self.date_modified.isoformat() + "Z",
             "items": [{
                 "id": item.id,
                 "name": item.name,
                 "date_created": item.date_created,
                 "date_modified": item.date_modified,
-                "done": item.done} for item in self.items]
+                "done": item.done} for item in self.items],
+            "date_created": self.date_created.isoformat(),
+            "date_modified": self.date_modified.isoformat(),
+            "created_by": self.created_by
         }
 
     def import_data(self, data):

@@ -30,19 +30,6 @@ def login():
     return jsonify({"Message": "Invalid username or password. Please try again"}), 401
 
 
-@app.route("/users/<int:user_id>", methods=["PUT"])
-@auth_token.login_required
-def update_user(user_id):
-    try:
-        user = User.query.get_or_404(user_id)
-        user.import_data(request.json)
-        db.session.add(user)
-        db.session.commit()
-        return jsonify({"Message": user.username.title() + " has been updated"}), 200
-    except:
-        return jsonify({"Message": "That user does not exist"}), 404
-
-
 @app.route("/bucketlists/", methods=["POST"])
 @auth_token.login_required
 def new_bucketlist():
@@ -57,11 +44,30 @@ def new_bucketlist():
 @app.route("/bucketlists/", methods=["GET"])
 @auth_token.login_required
 def all_bucketlists():
+    q = request.args.get("q", "")
+    page = int(request.args.get("page", 1))
+    limit = int(request.args.get("limit", 20))
+    if limit >= 100:
+        limit = 100
     try:
-        return jsonify({"All bucketlists": [bucketlist.export_data()
-                        for bucketlist in Bucketlist.query.all()]}), 200
+        bucketlists = Bucketlist.query.filter(
+            Bucketlist.list_name.like("%" + q + "%")).paginate(page, limit, error_out=True)
+        if bucketlists.has_next:
+            next_page = "/bucketlists/?" + "limit=" + str(limit) + "&page=" + str(page + 1)
+        else:
+            next_page = "None"
+        if bucketlists.has_prev:
+            prev_page = "/bucketlists/?" + "limit=" + str(limit) + "&page=" + str(page - 1)
+        else:
+            prev_page = "None"
+
+        return jsonify({"count": len(bucketlists.items),
+                        "next": next_page,
+                        "prev": prev_page,
+                        "Bucketlists": [bucketlist.export_data() for bucketlist in bucketlists.items]}), 200
     except:
         return jsonify({"Message": "There are no bucketlists"}), 404
+
 
 @app.route("/bucketlists/<int:bucket_id>", methods=["GET"])
 @auth_token.login_required
@@ -71,6 +77,7 @@ def get_bucketlist(bucket_id):
     except:
         return jsonify({"Message": "That bucketlist does not exist"}), 404
 
+
 @app.route("/bucketlists/<int:bucket_id>", methods=["PUT"])
 @auth_token.login_required
 def update_bucketlist(bucket_id):
@@ -79,7 +86,7 @@ def update_bucketlist(bucket_id):
         bucketlist.import_data(request.json)
         db.session.add(bucketlist)
         db.session.commit()
-        return jsonify({"Message": bucketlist.list_name.title() + " has been updated"}), 200
+        return jsonify({"Message": "Updated to " + bucketlist.list_name.title()}), 200
     except:
         return jsonify({"Message": "That bucketlist does not exist"}), 404
 
@@ -95,6 +102,7 @@ def delete_bucketlist(bucket_id):
     except:
         return jsonify({"Message": "That bucketlist does not exist"}), 404
 
+
 @app.route("/bucketlists/<int:bucket_id>/items", methods=["POST"])
 @auth_token.login_required
 def new_item(bucket_id):
@@ -104,7 +112,7 @@ def new_item(bucket_id):
     item.import_data(request.json)
     db.session.add(item)
     db.session.commit()
-    return jsonify({"Message": item.name.title() + " item has been created"}), 201
+    return jsonify({"Message": item.name.title() + " has been created"}), 201
 
 
 @app.route("/bucketlists/<int:bucket_id>/items/<int:item_id>", methods=["PUT"])
@@ -116,8 +124,8 @@ def update_item(bucket_id, item_id):
             item.import_data(request.json)
             db.session.add(item)
             db.session.commit()
-            return jsonify({"Message": item.name.title() + " has been updated"}), 200
-        return jsonify({"Message": "Item does not exist"}), 404
+            return jsonify({"Message": "Updated to " + item.name.title()}), 200
+    return jsonify({"Message": "Item does not exist"}), 404
 
 
 @app.route("/bucketlists/<int:bucket_id>/items/<int:item_id>", methods=["DELETE"])
@@ -128,5 +136,5 @@ def delete_item(bucket_id, item_id):
         if item.id == item_id:
             db.session.delete(item)
             db.session.commit()
-            return jsonify({"Message": item.name.title() + "has been deleted"}), 200
-        return jsonify({"Message": "Item does not exist"}), 404
+            return jsonify({"Message": item.name.title() + " has been deleted"}), 200
+    return jsonify({"Message": "Item does not exist"}), 404
