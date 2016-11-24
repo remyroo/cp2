@@ -2,10 +2,7 @@ from datetime import datetime
 from flask import url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from bucketlist import db
-
-
-class ValidationError(ValueError):
-    pass
+from bucketlist.exceptions import ValidationError
 
 
 class User(db.Model):
@@ -29,8 +26,8 @@ class User(db.Model):
 
     def import_data(self, data):
         try:
-            if not data["username"] or not data["password"]:
-                return "Missing"
+            if len(data["username"].strip()) == 0 or len(data["password"].strip()) == 0:
+                return "Invalid"
             else:
                 self.username = data["username"]
                 self.password_hash = data["password"]
@@ -41,7 +38,7 @@ class User(db.Model):
 
 class Bucketlist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    list_name = db.Column(db.String(100), index=True)
+    name = db.Column(db.String(100), index=True)
     date_created = db.Column(db.DateTime, default=datetime.now)
     date_modified = db.Column(db.DateTime, default=datetime.now,
                               onupdate=datetime.now)
@@ -52,7 +49,7 @@ class Bucketlist(db.Model):
     def export_data(self):
         return {
             "id": self.id,
-            "list_name": self.list_name,
+            "name": self.name,
             "items": [{
                 "id": item.id,
                 "name": item.name,
@@ -66,9 +63,16 @@ class Bucketlist(db.Model):
 
     def import_data(self, data):
         try:
-            self.list_name = data["list_name"]
+            if len(data["name"].strip()) == 0:
+                return "Invalid"
+            else:
+                self.name = data["name"]
         except KeyError as e:
             raise ValidationError("Invalid, missing: " + e.args[0])
+        return self
+
+    def update_data(self, data):
+        self.name = data.get("name", self.done)
         return self
 
 
@@ -92,8 +96,19 @@ class BucketlistItem(db.Model):
 
     def import_data(self, data):
         try:
-            self.name = data["name"]
-            self.done = data["done"]
+            if len(data["name"].strip()) == 0:
+                return "Invalid"
+            else:
+                self.name = data["name"]
+            if data["done"].strip() == "yes":
+                self.done = True
+            else:
+                self.done = False
         except KeyError as e:
             raise ValidationError("Invalid, missing: " + e.args[0])
+        return self
+
+    def update_data(self, data):
+        self.name = data.get("name", self.name)
+        self.done = data.get("done", self.done)
         return self

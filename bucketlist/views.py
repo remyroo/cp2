@@ -9,7 +9,7 @@ def new_user():
     user = User()
     try:
         sanitized = user.import_data(request.json)
-        if sanitized == "Missing":
+        if sanitized == "Invalid":
             return jsonify({"Message": "Username and Password are required"}), 400
     except ValidationError as e:
         return jsonify({"Message": str(e)}), 400
@@ -34,11 +34,16 @@ def login():
 @auth_token.login_required
 def new_bucketlist():
     bucketlist = Bucketlist()
-    bucketlist.import_data(request.json)
+    try:
+        sanitized = bucketlist.import_data(request.json)
+        if sanitized == "Invalid":
+            return jsonify({"Message": "The bucketlist must have a name"}), 400
+    except ValidationError as e:
+        return jsonify({"Message": str(e)}), 400
     bucketlist.created_by = g.user.id
     db.session.add(bucketlist)
     db.session.commit()
-    return jsonify({"Message": bucketlist.list_name.title() + " has been created"}), 201
+    return jsonify({"Message": bucketlist.name.title() + " has been created"}), 201
 
 
 @app.route("/bucketlists/", methods=["GET"])
@@ -47,11 +52,11 @@ def all_bucketlists():
     q = request.args.get("q", "")
     page = int(request.args.get("page", 1))
     limit = int(request.args.get("limit", 20))
-    if limit >= 100:
+    if limit > 100:
         limit = 100
     try:
         bucketlists = Bucketlist.query.filter(
-            Bucketlist.list_name.like("%" + q + "%")).paginate(page, limit, error_out=True)
+            Bucketlist.name.like("%" + q + "%")).paginate(page, limit, error_out=True)
         if bucketlists.has_next:
             next_page = "/bucketlists/?" + "limit=" + str(limit) + "&page=" + str(page + 1)
         else:
@@ -73,7 +78,11 @@ def all_bucketlists():
 @auth_token.login_required
 def get_bucketlist(bucket_id):
     try:
-        return jsonify({"Bucketlist": Bucketlist.query.get_or_404(bucket_id).export_data()}), 200
+        bucketlist = Bucketlist.query.get_or_404(bucket_id)
+        if bucketlist.created_by != g.user.id:
+            return jsonify({"Unauthorized": "You can only view bucketlists that you have created"})
+        else:
+            return jsonify({"Bucketlist": bucketlist.export_data()}), 200
     except:
         return jsonify({"Message": "That bucketlist does not exist"}), 404
 
@@ -83,10 +92,12 @@ def get_bucketlist(bucket_id):
 def update_bucketlist(bucket_id):
     try:
         bucketlist = Bucketlist.query.get_or_404(bucket_id)
-        bucketlist.import_data(request.json)
-        db.session.add(bucketlist)
-        db.session.commit()
-        return jsonify({"Message": "Updated to " + bucketlist.list_name.title()}), 200
+        if bucketlist.created_by != g.user.id:
+            return jsonify({"Unauthorized": "You can only update bucketlists that you have created"})
+        else:
+            bucketlist.update_data(request.json)
+            db.session.commit()
+            return jsonify({"Message": "Updated to " + bucketlist.name.title()}), 200
     except:
         return jsonify({"Message": "That bucketlist does not exist"}), 404
 
@@ -98,7 +109,7 @@ def delete_bucketlist(bucket_id):
         bucketlist = Bucketlist.query.get_or_404(bucket_id)
         db.session.delete(bucketlist)
         db.session.commit()
-        return jsonify({"Message": bucketlist.list_name.title() + " has been deleted"}), 200
+        return jsonify({"Message": bucketlist.name.title() + " has been deleted"}), 200
     except:
         return jsonify({"Message": "That bucketlist does not exist"}), 404
 
@@ -108,8 +119,13 @@ def delete_bucketlist(bucket_id):
 def new_item(bucket_id):
     Bucketlist.query.get_or_404(bucket_id)
     item = BucketlistItem()
+    try:
+        sanitized = item.import_data(request.json)
+        if sanitized == "Invalid":
+            return jsonify({"Message": "The item must have a name"}), 400
+    except ValidationError as e:
+        return jsonify({"Message": str(e)}), 400
     item.bucket = bucket_id
-    item.import_data(request.json)
     db.session.add(item)
     db.session.commit()
     return jsonify({"Message": item.name.title() + " has been created"}), 201
@@ -118,14 +134,13 @@ def new_item(bucket_id):
 @app.route("/bucketlists/<int:bucket_id>/items/<int:item_id>", methods=["PUT"])
 @auth_token.login_required
 def update_item(bucket_id, item_id):
-    itemlist = BucketlistItem.query.filter_by(bucket=bucket_id)
-    for item in itemlist:
-        if item.id == item_id:
-            item.import_data(request.json)
-            db.session.add(item)
-            db.session.commit()
-            return jsonify({"Message": "Updated to " + item.name.title()}), 200
-    return jsonify({"Message": "Item does not exist"}), 404
+    try:
+        item = BucketlistItem.query.filter_by(bucket=bucket_id, id=item_id).first()
+        item.update_data(request.json)
+        db.session.commit()
+        return jsonify({"Message": "Updated: " + item.name.title()}), 200
+    except:
+        return jsonify({"Message": "Item does not exist"}), 404
 
 
 @app.route("/bucketlists/<int:bucket_id>/items/<int:item_id>", methods=["DELETE"])
