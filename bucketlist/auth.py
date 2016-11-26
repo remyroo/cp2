@@ -9,7 +9,7 @@ auth = HTTPBasicAuth()
 auth_token = HTTPTokenAuth("Token")
 
 
-'''Login verification'''
+"""Login verification"""
 def verify_password(username, password):
     g.user = User.query.filter_by(username=username).first()
     if g.user is None:
@@ -18,13 +18,13 @@ def verify_password(username, password):
         return g.user
 
 
-'''Token generation'''
+"""Token generation"""
 def generate_auth_token(user_id, expires_in=3600):
     s = Serializer(app.config["SECRET_KEY"], expires_in=expires_in)
     return s.dumps({"id": g.user.id})
 
 
-'''Token authentication'''
+"""Token authentication"""
 @auth_token.verify_token
 def verify_auth_token(token):
     s = Serializer(app.config["SECRET_KEY"])

@@ -6,6 +6,9 @@ from bucketlist.exceptions import ValidationError
 
 
 class User(db.Model):
+    """
+    Models the User class
+    """
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, index=True)
     password_hash = db.Column(db.String(128))
@@ -18,6 +21,7 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    #  CREATE A VIEW WHERE AN INDIVIDUAL CAN SEE THEIR OWN INFO AND BLIST URLS
     def export_data(self):
         return {
             "username": self.username,
@@ -37,6 +41,9 @@ class User(db.Model):
 
 
 class Bucketlist(db.Model):
+    """
+    Models the bucketlist class
+    """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), index=True)
     date_created = db.Column(db.DateTime, default=datetime.now)
@@ -72,11 +79,14 @@ class Bucketlist(db.Model):
         return self
 
     def update_data(self, data):
-        self.name = data.get("name", self.done)
+        self.name = data.get("name", self.name)
         return self
 
 
 class BucketlistItem(db.Model):
+    """
+    Models the item class
+    """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, index=True)
     date_created = db.Column(db.DateTime, default=datetime.now)
@@ -84,15 +94,7 @@ class BucketlistItem(db.Model):
                               onupdate=datetime.now)
     done = db.Column(db.Boolean, default=False)
     bucket = db.Column(db.Integer, db.ForeignKey("bucketlist.id"))
-
-    def export_data(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "date_created": self.date_created.isoformat() + "Z",
-            "date_modified": self.date_modified.isoformat() + "Z",
-            "done": self.done
-        }
+    created_by = db.Column(db.Integer, db.ForeignKey("user.id"))
 
     def import_data(self, data):
         try:
