@@ -41,18 +41,9 @@ def login():
     """Uses a custom verify_password function and flask auth extensions
     to check the password and generate a token"""
     if verify_password(username, password):
-        return jsonify({"Token": generate_auth_token(g.user.id)}), 200
+        return jsonify({"Hello": user.username.title(), "Token": generate_auth_token(g.user.id),
+                        "View your bucketlists here": user.export_data()}), 200
     return jsonify({"Message": "Invalid username or password. Please try again"}), 401
-
-
-@app.route("/auth/user", methods=["GET"])
-@auth_token.login_required
-def get_user_details():
-    """
-    Return a logged-in user's url to view all their bucketlists.
-    """
-    result = User.query.filter_by(id=g.user.id).first()
-    return jsonify({"Details": result.export_data()})
 
 
 @app.route("/bucketlists/", methods=["POST"])
@@ -199,7 +190,6 @@ def new_item(bucket_id):
         return jsonify({"Message": "A bucketlist item with that name already exists. Please try again"}), 400
 
 
-#FIX THE PUT REQUEST SO THAT EITHER NAME OR DONE, NOT BOTH REQUIRED
 @app.route("/bucketlists/<int:bucket_id>/items/<int:item_id>", methods=["PUT"])
 @auth_token.login_required
 def update_item(bucket_id, item_id):

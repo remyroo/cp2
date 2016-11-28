@@ -22,11 +22,7 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
     def export_data(self):
-        return {
-            "username": self.username,
-            "view your bucketlists here": url_for("all_bucketlists",
-                                                  id=self.id, _external=True)
-        }
+        return url_for("all_bucketlists", id=self.id, _external=True)
 
     def import_data(self, data):
         try:
