@@ -21,7 +21,6 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    #  CREATE A VIEW WHERE AN INDIVIDUAL CAN SEE THEIR OWN INFO AND BLIST URLS
     def export_data(self):
         return {
             "username": self.username,
@@ -95,6 +94,9 @@ class BucketlistItem(db.Model):
     done = db.Column(db.Boolean, default=False)
     bucket = db.Column(db.Integer, db.ForeignKey("bucketlist.id"))
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"))
+
+    def export_data(self):
+        return url_for("all_bucketlists", id=self.id, _external=True)
 
     def import_data(self, data):
         try:
