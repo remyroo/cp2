@@ -7,7 +7,7 @@ from bucketlist.exceptions import ValidationError
 
 class User(db.Model):
     """
-    Models the User class
+    Models the user class
     """
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, index=True)
@@ -24,7 +24,8 @@ class User(db.Model):
     def export_data(self):
         return {
             "username": self.username,
-            "bucketlist_url": url_for("all_bucketlists", id=self.id, _external=True)
+            "view your bucketlists here": url_for("all_bucketlists",
+                                                  id=self.id, _external=True)
         }
 
     def import_data(self, data):
@@ -113,6 +114,11 @@ class BucketlistItem(db.Model):
         return self
 
     def update_data(self, data):
-        self.name = data.get("name", self.name)
-        self.done = data.get("done", self.done)
+        if data.get("name"):
+            self.name = data.get("name", self.name)
+        if data.get("done"):
+            if data.get("done").strip() == "no":
+                self.done = False
+            elif data.get("done").strip() == "yes":
+                self.done = True
         return self

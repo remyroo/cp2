@@ -45,11 +45,11 @@ def login():
     return jsonify({"Message": "Invalid username or password. Please try again"}), 401
 
 
-@app.route("/auth/user/", methods=["GET"])
+@app.route("/auth/user", methods=["GET"])
 @auth_token.login_required
 def get_user_details():
     """
-    Return a logged-in user's url to view all their bucketlists
+    Return a logged-in user's url to view all their bucketlists.
     """
     result = User.query.filter_by(id=g.user.id).first()
     return jsonify({"Details": result.export_data()})
@@ -85,7 +85,7 @@ def new_bucketlist():
 def all_bucketlists():
     """
     Returns all the bucketlists.
-    
+
     'q' defines a specific item to be searched for
     'page' defines the number of pages
     'limit' defines the number of results per page
@@ -125,7 +125,7 @@ def all_bucketlists():
                     "Bucketlists": [bucketlist.export_data() for bucketlist in bucketlists.items]}), 200
 
 
-@app.route("/bucketlists/<int:bucket_id>/", methods=["GET"])
+@app.route("/bucketlists/<int:bucket_id>", methods=["GET"])
 @auth_token.login_required
 def get_bucketlist(bucket_id):
     """
@@ -138,7 +138,7 @@ def get_bucketlist(bucket_id):
     return jsonify({"Bucketlist": bucketlist.export_data()}), 200
 
 
-@app.route("/bucketlists/<int:bucket_id>/", methods=["PUT"])
+@app.route("/bucketlists/<int:bucket_id>", methods=["PUT"])
 @auth_token.login_required
 def update_bucketlist(bucket_id):
     """
@@ -153,7 +153,7 @@ def update_bucketlist(bucket_id):
     return jsonify({"Message": "Updated to " + updated.name.title()}), 200
 
 
-@app.route("/bucketlists/<int:bucket_id>/", methods=["DELETE"])
+@app.route("/bucketlists/<int:bucket_id>", methods=["DELETE"])
 @auth_token.login_required
 def delete_bucketlist(bucket_id):
     """
@@ -168,7 +168,7 @@ def delete_bucketlist(bucket_id):
     return jsonify({"Message": bucketlist.name.title() + " has been deleted"}), 200
 
 
-@app.route("/bucketlists/<int:bucket_id>/items/", methods=["POST"])
+@app.route("/bucketlists/<int:bucket_id>/items", methods=["POST"])
 @auth_token.login_required
 def new_item(bucket_id):
     """
@@ -200,7 +200,7 @@ def new_item(bucket_id):
 
 
 #FIX THE PUT REQUEST SO THAT EITHER NAME OR DONE, NOT BOTH REQUIRED
-@app.route("/bucketlists/<int:bucket_id>/items/<int:item_id>/", methods=["PUT"])
+@app.route("/bucketlists/<int:bucket_id>/items/<int:item_id>", methods=["PUT"])
 @auth_token.login_required
 def update_item(bucket_id, item_id):
     """
@@ -217,7 +217,7 @@ def update_item(bucket_id, item_id):
                     "View it here": item.export_data()}), 200
 
 
-@app.route("/bucketlists/<int:bucket_id>/items/<int:item_id>/", methods=["DELETE"])
+@app.route("/bucketlists/<int:bucket_id>/items/<int:item_id>", methods=["DELETE"])
 @auth_token.login_required
 def delete_item(bucket_id, item_id):
     """
