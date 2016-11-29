@@ -6,10 +6,10 @@ install:
 - pip install -r requirements.txt
 - pip install coveralls
 env:
-  - DB=sqlitet
+  - DB=sqlite
 # command to run tests
 script:
-  coverage run --source=bucketlists,tests manage.py tests
+  coverage run -m unittest discover
 
 after_success:
   coveralls
