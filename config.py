@@ -3,6 +3,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config(object):
+    """Development environment."""
     DEBUG = False
     TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = True
@@ -11,6 +12,7 @@ class Config(object):
 
 
 class TestingConfig(object):
+    """Testing environment."""
     TESTING = True
     DEBUG = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True

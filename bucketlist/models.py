@@ -22,9 +22,11 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
     def export_data(self):
+        """Specifies the response data returned to the client"""
         return url_for("all_bucketlists", id=self.id, _external=True)
 
     def import_data(self, data):
+        """Validates the request data from the client"""
         try:
             if len(data["username"].strip()) == 0 or len(data["password"].strip()) == 0:
                 return "Invalid"
@@ -50,6 +52,7 @@ class Bucketlist(db.Model):
                             lazy="dynamic", cascade="all, delete-orphan")
 
     def export_data(self):
+        """Specifies the data to be returned to the client"""
         return {
             "id": self.id,
             "name": self.name,
@@ -65,6 +68,7 @@ class Bucketlist(db.Model):
         }
 
     def import_data(self, data):
+        """Validates the request data from the client"""
         try:
             if len(data["name"].strip()) == 0:
                 return "Invalid"
@@ -75,6 +79,7 @@ class Bucketlist(db.Model):
         return self
 
     def update_data(self, data):
+        """Validates the update requests from the client"""
         self.name = data.get("name", self.name)
         return self
 
@@ -93,9 +98,11 @@ class BucketlistItem(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"))
 
     def export_data(self):
+        """Specifies the data to be returned to the client"""
         return url_for("all_bucketlists", id=self.id, _external=True)
 
     def import_data(self, data):
+        """Validates the request data from the client"""
         try:
             if len(data["name"].strip()) == 0:
                 return "Invalid"
@@ -110,6 +117,7 @@ class BucketlistItem(db.Model):
         return self
 
     def update_data(self, data):
+        """Validates the update requests from the client"""
         if data.get("name"):
             self.name = data.get("name", self.name)
         if data.get("done"):

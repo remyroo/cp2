@@ -62,7 +62,8 @@ def new_bucketlist():
         return jsonify({"Message": str(e)}), 400
 
     # checks for duplicates before creating the new bucketlist
-    duplicate = Bucketlist.query.filter_by(name=bucketlist.name, created_by=g.user.id).first()
+    duplicate = Bucketlist.query.filter_by(name=bucketlist.name,
+                                           created_by=g.user.id).first()
     if not duplicate:
         bucketlist.created_by = g.user.id
         db.session.add(bucketlist)
@@ -95,9 +96,9 @@ def all_bucketlists():
 
     try:
         bucketlists = Bucketlist.query.filter(Bucketlist.created_by == g.user.id,
-                                              Bucketlist.name.like("%" + q + "%")).paginate(page, limit, error_out=True)
+                                              Bucketlist.name.ilike("%" + q + "%")).paginate(page, limit, error_out=True)
         if not bucketlists:
-            return jsonify({"Message": "That bucketlist does not exist. Please try again"}), 404
+            return jsonify({"Message": "The bucketlist was not found. Please try again"}), 404
     except:
         return jsonify({"Message": "There are no bucketlists matching your request. Please try again"}), 404
 
@@ -123,9 +124,10 @@ def get_bucketlist(bucket_id):
     Returns a specified bucketlist.
     """
     # ensures that a logged-in user can only edit their own bucketlist
-    bucketlist = Bucketlist.query.filter_by(id=bucket_id, created_by=g.user.id).first()
+    bucketlist = Bucketlist.query.filter_by(id=bucket_id,
+                                            created_by=g.user.id).first()
     if not bucketlist:
-        return jsonify({"Message": "That bucketlist does not exist for your user account. Please try again"}), 404
+        return jsonify({"Message": "The bucketlist was not found. Please try again"}), 404
     return jsonify({"Bucketlist": bucketlist.export_data()}), 200
 
 
@@ -136,9 +138,10 @@ def update_bucketlist(bucket_id):
     Updates a specified bucketlist.
     """
     # ensures that a logged-in user can only edit their own bucketlist
-    bucketlist = Bucketlist.query.filter_by(id=bucket_id, created_by=g.user.id).first()
+    bucketlist = Bucketlist.query.filter_by(id=bucket_id,
+                                            created_by=g.user.id).first()
     if not bucketlist:
-        return jsonify({"Message": "That bucketlist does not exist for your user account. Please try again"}), 404
+        return jsonify({"Message": "The bucketlist was not found. Please try again"}), 404
     updated = bucketlist.update_data(request.json)
     db.session.commit()
     return jsonify({"Message": "Updated to " + updated.name.title()}), 200
@@ -151,25 +154,27 @@ def delete_bucketlist(bucket_id):
     Deletes a specified bucketlist.
     """
     # ensures that a logged-in user can only edit their own bucketlist
-    bucketlist = Bucketlist.query.filter_by(id=bucket_id, created_by=g.user.id).first()
+    bucketlist = Bucketlist.query.filter_by(id=bucket_id,
+                                            created_by=g.user.id).first()
     if not bucketlist:
-        return jsonify({"Message": "That bucketlist does not exist for your user account. Please try again"}), 404
+        return jsonify({"Message": "The bucketlist was not found. Please try again"}), 404
     db.session.delete(bucketlist)
     db.session.commit()
     return jsonify({"Message": bucketlist.name.title() + " has been deleted"}), 200
 
 
-@app.route("/bucketlists/<int:bucket_id>/items", methods=["POST"])
+@app.route("/bucketlists/<int:bucket_id>/items/", methods=["POST"])
 @auth_token.login_required
 def new_item(bucket_id):
     """
     Creates a new bucketlist item.
     """
     # check if bucketlist exists, then validate user input using try-catch block
-    bucketlist = Bucketlist.query.filter_by(id=bucket_id, created_by=g.user.id).first()
+    bucketlist = Bucketlist.query.filter_by(id=bucket_id,
+                                            created_by=g.user.id).first()
     if not bucketlist:
-        return jsonify({"Message": "You can only create an item within your own bucketlist. Please try again"}), 404
-    else:    
+        return jsonify({"Message": "The bucketlist was not found. Please try again"}), 404
+    else:
         try:
             item = BucketlistItem()
             sanitized = item.import_data(request.json)
@@ -199,7 +204,7 @@ def update_item(bucket_id, item_id):
     # ensures that a logged-in user can only access their own bucketlist
     item = BucketlistItem.query.filter_by(bucket=bucket_id, id=item_id, created_by=g.user.id).first()
     if not item:
-        return jsonify({"Message": "That item does not exist for your user account. Please try again"}), 404
+        return jsonify({"Message": "The item was not found. Please try again"}), 404
     # checks for duplicates before updating the item
     item.update_data(request.json)
     db.session.commit()
@@ -214,9 +219,10 @@ def delete_item(bucket_id, item_id):
     Deletes a specified item belonging to a specified bucketlist
     """
     # ensures that a logged-in user can only access their own bucketlist
-    item = BucketlistItem.query.filter_by(bucket=bucket_id, id=item_id, created_by=g.user.id).first()
+    item = BucketlistItem.query.filter_by(bucket=bucket_id, id=item_id,
+                                          created_by=g.user.id).first()
     if not item:
-        return jsonify({"Message": "That item does not exist for your user account. Please try again"}), 404
+        return jsonify({"Message": "The item was not found. Please try again"}), 404
     db.session.delete(item)
     db.session.commit()
     return jsonify({"Message": item.name.title() + " has been deleted",
