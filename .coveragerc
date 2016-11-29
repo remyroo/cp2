@@ -1,3 +1,5 @@
 [report]
-omit = */migrations/*
+omit = 
+    */migrations/*
+    *virtualenvs/*
 

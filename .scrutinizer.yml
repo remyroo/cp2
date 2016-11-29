@@ -1,0 +1,12 @@
+checks:
+    python:
+        code_rating: true
+        duplicate_code: true
+        basic_missing_docstring: true
+        miscellaneous_fixme: true
+        variables_unused_argument: true
+
+filter:
+    excluded_paths:
+        - '*/migrations/*'
+        - '*virtualenvs/*'

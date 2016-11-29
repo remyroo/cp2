@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/andela-rwachira/cp2.svg?branch=develop)](https://travis-ci.org/andela-rwachira/cp2)
-[![Coverage Status](https://coveralls.io/repos/github/andela-rwachira/cp2/badge.svg?branch=develop)](https://coveralls.io/github/andela-rwachira/cp2?branch=develop) 
+[![Coverage Status](https://coveralls.io/repos/github/andela-rwachira/cp2/badge.svg)](https://coveralls.io/github/andela-rwachira/cp2)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/andela-rwachira/cp2/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/andela-rwachira/cp2/?branch=develop)
+![Python Version](https://img.shields.io/badge/python-2.7-brightgreen.svg)
 
 
 # Bucketlist API. 
@@ -10,6 +12,10 @@ It was built using Flask and Flask_SQLAlchemy.
 ## Install
 
 These are the basic steps to install and run the application locally on a linux system:
+
+Set up your virtual environment:
+
+You can find instructions [here](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
 
 Clone the repo from GitHub:
 
@@ -44,6 +50,16 @@ Start the local server:
 Once your local server is up and running, you can use your favourite REST Client
 to interact with the endpoints below. I recommend [Postman](https://www.getpostman.com/)
 from Chrome which was used in the building of this app.
+
+
+| Method | URL | Description | Token Required |
+| -------- | ------------- | --------- |--------------- |
+| POST | `/auth/register/` | User registration | FALSE |
+| POST | `/auth/login/` | User login | FALSE |
+| POST, GET | `/bucketlists/` | Create or retrieve a user's bucketlist(s) | TRUE |
+| GET, PUT, DELETE | `/bucketlists/<id>` | Retrieve, update or delete a user's specific bucketlist | TRUE |
+| POST | `/bucketlists/<id>/items/` | Create a single item in a user's bucketlist | TRUE |
+| PUT, DELETE | `/bucketlists/<id>/items/<item_id>` | Update or delete a user's item | TRUE |
 
 
 POST /auth/register
@@ -143,5 +159,6 @@ Delete an item in a bucketlist
 
 ## Testing
 
-After cloning the repo, cd into the tests folder and run `python manage.py [test_filename]`
+From the root folder run `coverage run -m unittest discover`
 
+Run `coverage report` to see the results in an easy-to-read table
