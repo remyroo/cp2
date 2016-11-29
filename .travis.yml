@@ -5,9 +5,11 @@ python:
 install: 
 - pip install -r requirements.txt
 - pip install coveralls
+env:
+  - DB=sqlitet
 # command to run tests
 script:
-  coverage run test_auth.py
+  coverage run --source=bucketlists,tests manage.py tests
 
 after_success:
   coveralls
