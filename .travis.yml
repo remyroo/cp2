@@ -3,11 +3,11 @@ python:
   - "2.7"
 # command to install dependencies
 install: 
-- "pip install -r requirements.txt"
-- "pip install coveralls"
+- pip install -r requirements.txt
+- pip install coveralls
 # command to run tests
 script:
-  coverage run
+  coverage run test_auth.py
 
 after_success:
   coveralls
