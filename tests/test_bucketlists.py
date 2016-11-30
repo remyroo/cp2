@@ -39,7 +39,7 @@ class TestBucketlistViews(BaseTestCase):
     def test_duplicates_prevented(self):
         """
         Tests error is raised for duplicates.
-        
+  
         A bucket named 'testbucketlist' was already created in setUp.
         """
         response = self.client.post("/bucketlists/",
@@ -76,7 +76,7 @@ class TestBucketlistViews(BaseTestCase):
     def test_bucketlist_access_by_user(self):
         """
         Tests user cannot access bucketlists owned by another user.
-        
+    
         A 3rd test bucketlist was created by a different user 
         in setUp to test that user access works correctly.
         """
@@ -115,6 +115,21 @@ class TestBucketlistViews(BaseTestCase):
         self.assertEqual(response.status_code, 404)
         response_msg = json.loads(response.data)
         self.assertIn("not found", response_msg["Message"])
+
+    def test_duplicates_prevented_during_updates(self):
+        """
+        Tests error is raised when an updated bucketlist creates
+        a duplicate.
+        
+        A bucket named 'testbucketlist' was already created in setUp.
+        """
+        response = self.client.put("/bucketlists/1",
+                                   data=json.dumps(dict(name="testbucketlist")),
+                                   content_type="application/json",
+                                   headers={"Authorization": "Token " + self.token})
+        self.assertEqual(response.status_code, 400)
+        response_msg = json.loads(response.data)
+        self.assertIn("already exists", response_msg["Message"])
 
     def test_delete_bucketlist(self):
         """Tests bucketlist deletion."""

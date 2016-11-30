@@ -139,9 +139,16 @@ def update_bucketlist(bucket_id):
                                             created_by=g.user.id).first()
     if not bucketlist:
         return jsonify({"Message": "The bucketlist was not found. Please try again"}), 404
-    updated = bucketlist.update_data(request.json)
-    db.session.commit()
-    return jsonify({"Message": "Updated to " + updated.name.title()}), 200
+    else:
+        # checks for duplicates before updating the bucketlist
+        duplicate = Bucketlist.query.filter_by(name=request.json["name"],
+                                               created_by=g.user.id).first()
+        if not duplicate:
+            bucketlist.update_data(request.json)
+            db.session.commit()
+            return jsonify({"Message": "Updated to " + bucketlist.name.title()}), 200
+        else:
+            return jsonify({"Message": "A bucketlist with that name already exists. Please try again"}), 400
 
 
 @app.route("/bucketlists/<int:bucket_id>", methods=["DELETE"])
@@ -199,14 +206,14 @@ def update_item(bucket_id, item_id):
     Updates a specified item belonging to a specified bucketlist
     """
     # ensures that a logged-in user can only access their own bucketlist
-    item = BucketlistItem.query.filter_by(bucket=bucket_id, id=item_id, created_by=g.user.id).first()
+    item = BucketlistItem.query.filter_by(bucket=bucket_id, id=item_id,
+                                          created_by=g.user.id).first()
     if not item:
         return jsonify({"Message": "The item was not found. Please try again"}), 404
     item.update_data(request.json)
     db.session.commit()
     return jsonify({"Message": "Updated: " + item.name.title(),
                     "View it here": item.export_data()}), 200
-
 
 @app.route("/bucketlists/<int:bucket_id>/items/<int:item_id>", methods=["DELETE"])
 @auth_token.login_required
