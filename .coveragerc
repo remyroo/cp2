@@ -2,4 +2,4 @@
 omit = 
     */migrations/*
     *virtualenvs/*
-
+    */site-packages/*
