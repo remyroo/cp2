@@ -55,12 +55,12 @@ class Bucketlist(db.Model):
         """Specifies the data to be returned to the client"""
         return {
             "id": self.id,
-            "name": self.name,
+            "name": self.name.title(),
             "items": [{
                 "id": item.id,
                 "name": item.name,
-                "date_created": item.date_created,
-                "date_modified": item.date_modified,
+                "date_created": item.date_created.isoformat(),
+                "date_modified": item.date_modified.isoformat(),
                 "done": item.done} for item in self.items],
             "date_created": self.date_created.isoformat(),
             "date_modified": self.date_modified.isoformat(),

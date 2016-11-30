@@ -8,6 +8,14 @@ class TestBucketlistViews(BaseTestCase):
     """
     Test bucketlist interactions.
     """
+    def test_bucketlist_access_with_invalid_token(self):
+        """Tests unauthorized error raised with invalid token."""
+        response = self.client.post("/bucketlists/",
+                                    data=json.dumps(dict(name="bucketlist")),
+                                    content_type="application/json",
+                                    headers={"Authorization": "Token " + "invalid"})
+        self.assertEqual(response.status_code, 401)
+
     def test_add_new_bucketlist(self):
         """Tests a new bucketlist can be added."""
         response = self.client.post("/bucketlists/",
@@ -18,11 +26,21 @@ class TestBucketlistViews(BaseTestCase):
         response_msg = json.loads(response.data)
         self.assertIn("Bucketlist", response_msg["Message"])
 
+    def test_invalid_name(self):
+        """Tests error raised when empty string passed."""
+        response = self.client.post("/bucketlists/",
+                                    data=json.dumps(dict(name="")),
+                                    content_type="application/json",
+                                    headers={"Authorization": "Token " + self.token})
+        self.assertEqual(response.status_code, 400)
+        response_msg = json.loads(response.data)
+        self.assertIn("must have a name", response_msg["Message"])
+
     def test_duplicates_prevented(self):
         """
-        Tests a new bucketlist can be added.
+        Tests error is raised for duplicates.
         
-        A bucket named 'testbucketlist' was already created in setUp
+        A bucket named 'testbucketlist' was already created in setUp.
         """
         response = self.client.post("/bucketlists/",
                                     data=json.dumps(dict(name="testbucketlist")),
@@ -45,7 +63,7 @@ class TestBucketlistViews(BaseTestCase):
         """
         Tests retrieval of a single bucketlist.
 
-        Two test bucketlist items were added in the setUp to
+        Two test bucketlists were added in the setUp to
         test that the id parameter works correctly.
         """
         response = self.client.get("/bucketlists/2",
@@ -53,7 +71,30 @@ class TestBucketlistViews(BaseTestCase):
                                    headers={'Authorization': 'Token ' + self.token})
         self.assertEqual(response.status_code, 200)
         response_msg = json.loads(response.data)
-        self.assertIn("testbucketlist2", response_msg["Bucketlist"]["name"])
+        self.assertIn("Testbucketlist2", response_msg["Bucketlist"]["name"])
+
+    def test_bucketlist_access_by_user(self):
+        """
+        Tests user cannot access bucketlists owned by another user.
+        
+        A 3rd test bucketlist was created by a different user 
+        in setUp to test that user access works correctly.
+        """
+        response = self.client.get("/bucketlists/3",
+                                   content_type="application/json",
+                                   headers={'Authorization': 'Token ' + self.token})
+        self.assertEqual(response.status_code, 404)
+        response_msg = json.loads(response.data)
+        self.assertIn("not found", response_msg["Message"])
+
+    def test_invalid_bucketlist_get_request(self):
+        """Tests error raised for an invalid get request."""
+        response = self.client.get("/bucketlists/3",
+                                   content_type="application/json",
+                                   headers={'Authorization': 'Token ' + self.token})
+        self.assertEqual(response.status_code, 404)
+        response_msg = json.loads(response.data)
+        self.assertIn("not found", response_msg["Message"])
 
     def test_update_bucketlist(self):
         """Tests a bucketlist can be updated."""
@@ -65,33 +106,90 @@ class TestBucketlistViews(BaseTestCase):
         response_msg = json.loads(response.data)
         self.assertIn("Updated_Name", response_msg["Message"])
 
+    def test_invalid_update(self):
+        """Tests error raised for an invalid update request."""
+        response = self.client.put("/bucketlists/3",
+                                   data=json.dumps(dict(name="updated_name")),
+                                   content_type="application/json",
+                                   headers={'Authorization': 'Token ' + self.token})
+        self.assertEqual(response.status_code, 404)
+        response_msg = json.loads(response.data)
+        self.assertIn("not found", response_msg["Message"])
+
     def test_delete_bucketlist(self):
         """Tests bucketlist deletion."""
         response = self.client.delete("/bucketlists/1",
                                       content_type="application/json",
                                       headers={'Authorization': 'Token ' + self.token})
         self.assertEqual(response.status_code, 200)
+        response_msg = json.loads(response.data)
+        self.assertIn("deleted", response_msg["Message"])
 
         # asserts that the bucketlist has been deleted from the db
         self.assertEqual(Bucketlist.query.get(1), None)
 
-    def test_pagination(self):
+    def test_invalid_delete(self):
+        """Tests error raised for an invalid delete request."""
+        response = self.client.delete("/bucketlists/3",
+                                      content_type="application/json",
+                                      headers={'Authorization': 'Token ' + self.token})
+        self.assertEqual(response.status_code, 404)
+        response_msg = json.loads(response.data)
+        self.assertIn("not found", response_msg["Message"])
+
+    def test_results_limit(self):
         """Tests specified number of results retrieved from GET request."""
-        response = self.client.get("/bucketlists/?limit=2",
+        response = self.client.get("/bucketlists/?limit=1",
                                    content_type="application/json",
                                    headers={'Authorization': 'Token ' + self.token})
         self.assertEqual(response.status_code, 200)
         response_msg = json.loads(response.data)
-        self.assertEqual(2, response_msg["count"])
+        self.assertEqual(1, response_msg["count"])
+
+    def test_invalid_limit(self):
+        """Tests error raised for non-integer limit request."""
+        response = self.client.get("/bucketlists/?limit=invalid",
+                                   content_type="application/json",
+                                   headers={'Authorization': 'Token ' + self.token})
+        self.assertEqual(response.status_code, 400)
+        response_msg = json.loads(response.data)
+        self.assertIn("use numbers", response_msg["Message"])
+
+    def test_pagination(self):
+        """Tests specified number of pages returned from GET request."""
+        response = self.client.get("/bucketlists/?page=1",
+                                   content_type="application/json",
+                                   headers={'Authorization': 'Token ' + self.token})
+        self.assertEqual(response.status_code, 200)
+        response_msg = json.loads(response.data)
+        self.assertTrue(response_msg["next"], "None")
+
+    def test_invalid_pagination(self):
+        """Tests error raised for non-integer pagination request."""
+        response = self.client.get("/bucketlists/?page=invalid",
+                                   content_type="application/json",
+                                   headers={'Authorization': 'Token ' + self.token})
+        self.assertEqual(response.status_code, 400)
+        response_msg = json.loads(response.data)
+        self.assertIn("use numbers", response_msg["Message"])
 
     def test_search_by_bucketlist_name(self):
         """Tests bucketlist can be retrieved from search."""
-        response = self.client.get("/bucketlists/?q=testbucketlist",
+        response = self.client.get("/bucketlists/?q=Testbucketlist",
                                    content_type="application/json",
                                    headers={'Authorization': 'Token ' + self.token})
         self.assertEqual(response.status_code, 200)
         response_msg = json.loads(response.data)
-        self.assertEqual("testbucketlist", response_msg["Bucketlists"][0]["name"])
+        self.assertEqual("Testbucketlist", response_msg["Bucketlists"][0]["name"])
+
+    def test_invalid_search(self):
+        """Tests error raised for invalid search."""
+        response = self.client.get("/bucketlists/?q=invalid",
+                                   content_type="application/json",
+                                   headers={'Authorization': 'Token ' + self.token})
+        self.assertEqual(response.status_code, 404)
+        response_msg = json.loads(response.data)
+        self.assertIn("not found", response_msg["Message"])
 
 
 if __name__ == '__main__':

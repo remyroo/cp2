@@ -86,35 +86,32 @@ def all_bucketlists():
     try:
         page = int(request.args.get("page", 1))
     except:
-        return jsonify({"Message": "Please use numbers to define the page"})
+        return jsonify({"Message": "Please use numbers to define the page"}), 400
     try:
         limit = int(request.args.get("limit", 20))
         if limit > 100:
             limit = 100
     except:
-        return jsonify({"Message": "Please use numbers to define the limit"})
+        return jsonify({"Message": "Please use numbers to define the limit"}), 400
 
-    try:
-        bucketlists = Bucketlist.query.filter(Bucketlist.created_by == g.user.id,
-                                              Bucketlist.name.ilike("%" + q + "%")).paginate(page, limit, error_out=True)
-        if not bucketlists:
-            return jsonify({"Message": "The bucketlist was not found. Please try again"}), 404
-    except:
-        return jsonify({"Message": "There are no bucketlists matching your request. Please try again"}), 404
-
-    if bucketlists.has_next:
-        next_page = "/bucketlists/?" + "limit=" + str(limit) + "&page=" + str(page + 1)
+    bucketlists = Bucketlist.query.filter(Bucketlist.created_by == g.user.id,
+                                          Bucketlist.name.ilike("%" + q + "%")).paginate(page, limit, error_out=True)
+    if len(bucketlists.items) == 0:
+        return jsonify({"Message": "Your request was not found. Please try again"}), 404
     else:
-        next_page = "None"
-    if bucketlists.has_prev:
-        prev_page = "/bucketlists/?" + "limit=" + str(limit) + "&page=" + str(page - 1)
-    else:
-        prev_page = "None"
+        if bucketlists.has_next:
+            next_page = "/bucketlists/?" + "limit=" + str(limit) + "&page=" + str(page + 1)
+        else:
+            next_page = "None"
+        if bucketlists.has_prev:
+            prev_page = "/bucketlists/?" + "limit=" + str(limit) + "&page=" + str(page - 1)
+        else:
+            prev_page = "None"
 
-    return jsonify({"count": len(bucketlists.items),
-                    "next": next_page,
-                    "prev": prev_page,
-                    "Bucketlists": [bucketlist.export_data() for bucketlist in bucketlists.items]}), 200
+        return jsonify({"count": len(bucketlists.items),
+                        "next": next_page,
+                        "prev": prev_page,
+                        "Bucketlists": [bucketlist.export_data() for bucketlist in bucketlists.items]}), 200
 
 
 @app.route("/bucketlists/<int:bucket_id>", methods=["GET"])
@@ -205,7 +202,6 @@ def update_item(bucket_id, item_id):
     item = BucketlistItem.query.filter_by(bucket=bucket_id, id=item_id, created_by=g.user.id).first()
     if not item:
         return jsonify({"Message": "The item was not found. Please try again"}), 404
-    # checks for duplicates before updating the item
     item.update_data(request.json)
     db.session.commit()
     return jsonify({"Message": "Updated: " + item.name.title(),

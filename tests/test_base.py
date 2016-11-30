@@ -41,6 +41,11 @@ class BaseTestCase(unittest.TestCase):
         test_bucket2.import_data(bucket2)
         test_bucket2.created_by = 1
 
+        bucket3 = {"name": "testbucketlist3"}
+        test_bucket3 = Bucketlist()
+        test_bucket3.import_data(bucket3)
+        test_bucket3.created_by = 2
+
         item = {"name": "testitem", "done": ""}
         test_item = BucketlistItem()
         test_item.import_data(item)
@@ -49,6 +54,7 @@ class BaseTestCase(unittest.TestCase):
 
         db.session.add(test_bucket)
         db.session.add(test_bucket2)
+        db.session.add(test_bucket3)
         db.session.add(test_item)
         db.session.commit()
 
