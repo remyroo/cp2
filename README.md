@@ -1,5 +1,4 @@
 [![Build Status](https://travis-ci.org/andela-rwachira/cp2.svg?branch=develop)](https://travis-ci.org/andela-rwachira/cp2)
-[![Coverage Status](https://coveralls.io/repos/github/andela-rwachira/cp2/badge.svg?branch=develop)](https://coveralls.io/github/andela-rwachira/cp2?branch=develop)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/andela-rwachira/cp2/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/andela-rwachira/cp2/?branch=develop)
 ![Python Version](https://img.shields.io/badge/python-2.7-brightgreen.svg)
 
@@ -73,7 +72,7 @@ from Chrome which was used in the building of this app.
 
 ### Quick video demo
 
-[Youtube](https://youtu.be/Ygoi3rThK38)
+You can watch a 4 minute video demo on [Youtube](https://youtu.be/Ygoi3rThK38)
 
 ### Screenshots
 
