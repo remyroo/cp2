@@ -31,7 +31,7 @@ class User(db.Model):
             if len(data["username"].strip()) == 0 or len(data["password"].strip()) == 0:
                 return "Invalid"
             else:
-                self.username = data["username"]
+                self.username = data["username"].title()
                 self.password_hash = data["password"]
         except KeyError as e:
             raise ValidationError("Missing field: " + e.args[0])
@@ -59,11 +59,11 @@ class Bucketlist(db.Model):
             "items": [{
                 "id": item.id,
                 "name": item.name,
-                "date_created": item.date_created.isoformat(),
-                "date_modified": item.date_modified.isoformat(),
+                "date_created": item.date_created,
+                "date_modified": item.date_modified,
                 "done": item.done} for item in self.items],
-            "date_created": self.date_created.isoformat(),
-            "date_modified": self.date_modified.isoformat(),
+            "date_created": self.date_created,
+            "date_modified": self.date_modified,
             "created_by": self.created_by
         }
 
