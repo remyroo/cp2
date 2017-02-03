@@ -1,11 +1,10 @@
 from flask import g
-from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
+from flask_httpauth import HTTPTokenAuth
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from bucketlist import app
 from bucketlist.models import User
 
 
-auth = HTTPBasicAuth()
 auth_token = HTTPTokenAuth("Token")
 
 
